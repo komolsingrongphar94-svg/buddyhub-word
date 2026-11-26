@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Komol Words & Emoji Generator</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;padding:20px;min-height:100vh;
+  display:flex;justify-content:center;align-items:center;
+  font-family:Arial,sans-serif;
+  background:linear-gradient(135deg,#10102c,#25256b);
+  color:white
+}
+.container{
+  width:100%;max-width:450px;background:#191936;
+  padding:25px;border-radius:18px;
+  box-shadow:0 10px 35px #0006
+}
+h1{text-align:center;color:#a78bfa;font-size:25px}
+p{text-align:center;color:#bbb}
+label{display:block;margin-top:18px;margin-bottom:7px}
+input{
+  width:100%;padding:14px;border-radius:9px;
+  border:1px solid #555;background:#29294b;
+  color:white;font-size:16px
+}
+button{
+  width:100%;padding:14px;margin-top:12px;
+  border:0;border-radius:9px;
+  background:#8b5cf6;color:white;
+  font-size:16px;font-weight:bold
+}
+.secondary{background:#34345a}
+.output{
+  background:#29294b;padding:15px;margin-top:18px;
+  border-radius:10px;max-height:250px;
+  overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere
+}
+#message{text-align:center;color:#a78bfa;margin-top:12px}
+small{color:#aaa}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>✨ Komol Words & Emoji Generator</h1>
+  <p>Repeat your favourite words and emojis!</p>
+
+  <label for="word">Enter a word or emoji</label>
+  <input id="word" type="text" placeholder="Example: Hello 🔥">
+
+  <label for="limit">Number of repetitions</label>
+  <input id="limit" type="number" min="1" max="100000" value="10">
+
+  <button id="generate">✨ Generate</button>
+  <button id="copy" class="secondary">📋 Copy Output</button>
+  <button id="clear" class="secondary">🗑️ Clear</button>
+
+  <div id="message"></div>
+  <div id="output" class="output" hidden></div>
+
+  <p><small>Made with ❤️ by Komol</small></p>
+</div>
+
+<script type="module">
+import { auth, onAuthStateChanged, signOut } from "./firebase.js";
+
+const wordInput = document.getElementById("word");
+const limitInput = document.getElementById("limit");
+const output = document.getElementById("output");
+const message = document.getElementById("message");
+
+const logoutButton = document.createElement("button");
+logoutButton.textContent = "Logout";
+logoutButton.className = "secondary";
+document.querySelector(".container").appendChild(logoutButton);
+
+onAuthStateChanged(auth, user => {
+  if (!user) window.location.replace("auth.html");
+});
+
+logoutButton.onclick = async () => {
+  try {
+    await signOut(auth);
+    window.location.replace("auth.html");
+  } catch (error) {
+    message.textContent = "Logout failed: " + error.message;
+  }
+};
+
+document.getElementById("generate").onclick = () => {
+  const word = wordInput.value.trim();
+  const limit = Number(limitInput.value);
+
+  if (!word) {
+    message.textContent = "Please enter a word or emoji.";
+    return;
+  }
+
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100000) {
+    message.textContent = "Enter a number between 1 and 100000.";
+    return;
+  }
+
+  output.textContent = Array(limit).fill(word).join(" ");
+  output.hidden = false;
+  message.textContent = "Successfully generated " + limit + " repetitions!";
+};
+
+document.getElementById("copy").onclick = async () => {
+  if (output.hidden || !output.textContent) {
+    message.textContent = "Generate something first.";
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(output.textContent);
+    message.textContent = "Copied successfully! ✅";
+  } catch {
+    message.textContent = "Copy failed. Please select the output manually.";
+  }
+};
+
+document.getElementById("clear").onclick = () => {
+  wordInput.value = "";
+  limitInput.value = "10";
+  output.textContent = "";
+  output.hidden = true;
+  message.textContent = "";
+};
+</script>
+
+<script type="module">
+import { showBanner } from './admob.js';
+
+showBanner().catch(error => {
+  console.error('AdMob banner error:', error);
+});
+</script>
+
+</body>
+</html>

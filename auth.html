@@ -96,7 +96,7 @@ function showError(error) {
 }
 
 onAuthStateChanged(auth, user => {
-  if (user) window.location.href = "index.html";
+  if (user) window.location.href = "generator.html";
 });
 
 registerForm.addEventListener("submit", async (e) => {
@@ -117,7 +117,7 @@ registerForm.addEventListener("submit", async (e) => {
     });
 
     message.textContent = "Account created successfully!";
-    window.location.href = "index.html";
+    window.location.href = "generator.html";
 
   } catch (error) {
     message.textContent = showError(error);
@@ -134,7 +134,7 @@ loginForm.addEventListener("submit", async (e) => {
   try {
     await signInWithEmailAndPassword(auth, email, password);
     message.textContent = "Login successful!";
-    window.location.href = "index.html";
+    window.location.href = "generator.html";
   } catch (error) {
     message.textContent = showError(error);
   }
