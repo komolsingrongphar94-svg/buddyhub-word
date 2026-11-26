@@ -1,0 +1,394 @@
+
+<!DOCTYPE html>
+< lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Komol User Dashboard</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0b1020;
+  color: white;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.container {
+  width: 100%;
+  max-width: 420px;
+  background: #171f35;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 10px 40px #0008;
+}
+
+h1, h2 { text-align: center; }
+h1 { color: #7c9cff; }
+
+input {
+  width: 100%;
+  padding: 14px;
+  margin: 9px 0;
+  border: 1px solid #34415f;
+  border-radius: 9px;
+  background: #0d1528;
+  color: white;
+  font-size: 15px;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 9px;
+  background: #5579ff;
+  color: white;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+button:hover { background: #385ce0; }
+
+.secondary {
+  background: #303c57;
+}
+
+.small {
+  text-align: center;
+  color: #aab5ce;
+  margin-top: 18px;
+}
+
+a {
+  color: #8caaff;
+  cursor: pointer;
+}
+
+#dashboard, #register, #login {
+  display: none;
+}
+
+.profile {
+  background: #202c48;
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+#message {
+  text-align: center;
+  color: #ff9c9c;
+  font-size: 14px;
+  margin-top: 12px;
+}
+
+</style>
+</head>
+
+<>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <section id="login">
+    <h1>🚀 KOMOL</h1>
+    <h2>Welcome Back!</h2>
+    <p class="small">Login to your account</p>
+
+    <input id="loginEmail" type="email"
+      placeholder="Email address">
+
+    <input id="loginPassword" type="password"
+      placeholder="Password">
+
+    <button id="loginBtn">Login</button>
+
+    <button class="secondary" id="forgotBtn">
+      Forgot Password?
+    </button>
+
+    <p class="small">
+      New user? <a id="showRegister">Create Account</a>
+    </p>
+  </section>
+
+  <!-- REGISTER -->
+  <section id="register">
+    <h1>✨ KOMOL</h1>
+    <h2>Create Account</h2>
+    <p class="small">Register to get started</p>
+
+    <input id="regName" type="text"
+      placeholder="Full Name">
+
+    <input id="regEmail" type="email"
+      placeholder="Email Address">
+
+    <input id="regPassword" type="password"
+      placeholder="Create Password (minimum 6 characters)">
+
+    <button id="registerBtn">Register Now</button>
+
+    <p class="small">
+      Already registered? <a id="showLogin">Login</a>
+    </p>
+  </section>
+
+  <!-- DASHBOARD -->
+  <section id="dashboard">
+    <h1>🏠 My Dashboard</h1>
+    <div class="profile">
+      <h2 id="welcome">Welcome!</h2>
+      <p id="userName"></p>
+      <p id="userEmail"></p>
+      <p>Account Status: 🟢 Active</p>
+    </div>
+
+    <h3>🎉 Welcome to Komol!</h3>
+    <p>You have successfully logged in.</p>
+    <p>Your account information is saved online.</p>
+
+    <button class="secondary" id="logoutBtn">
+      Logout
+    </button>
+  </section>
+
+  <p id="message"></p>
+
+</div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  sendPasswordResetEmail
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+// REPLACE WITH YOUR FIREBASE CONFIG
+
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+const $ = id => document.getElementById(id);
+
+function showPage(page) {
+  ["login", "register", "dashboard"].forEach(id => {
+    $(id).style.display = id === page ? "block" : "none";
+  });
+  $("message").textContent = "";
+}
+
+function showMessage(message) {
+  $("message").textContent = message;
+}
+
+$("showRegister").onclick = () => showPage("register");
+$("showLogin").onclick = () => showPage("login");
+
+// REGISTER USER
+
+$("registerBtn").onclick = async () => {
+  const name = $("regName").value.trim();
+  const email = $("regEmail").value.trim();
+  const password = $("regPassword").value;
+
+  if (!name || !email || !password) {
+    return showMessage("Please fill all fields.");
+  }
+
+  if (password.length < 6) {
+    return showMessage("Password must be at least 6 characters.");
+  }
+
+  try {
+    const result = await createUserWithEmailAndPassword(
+      auth, email, password
+    );
+
+    await updateProfile(result.user, {
+      displayName: name
+    });
+
+    await setDoc(doc(db, "users", result.user.uid), {
+      name: name,
+      email: email,
+      createdAt: serverTimestamp()
+    });
+
+    showMessage("Account created successfully!");
+
+  } catch (error) {
+    showMessage(error.message);
+  }
+};
+
+// LOGIN USER
+
+$("loginBtn").onclick = async () => {
+  const email = $("loginEmail").value.trim();
+  const password = $("loginPassword").value;
+
+  if (!email || !password) {
+    return showMessage("Enter your email and password.");
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    showMessage(error.message);
+  }
+};
+
+// FORGOT PASSWORD
+
+$("forgotBtn").onclick = async () => {
+  const email = $("loginEmail").value.trim();
+
+  if (!email) {
+    return showMessage("Enter your email first.");
+  }
+
+  try {
+    await sendPasswordResetEmail(auth, email);
+    showMessage("Password reset link sent to your email.");
+  } catch (error) {
+    showMessage(error.message);
+  }
+};
+
+// AUTHENTICATION CHECK
+
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      const name = userSnap.exists()
+        ? userSnap.data().name
+        : user.displayName || "User";
+
+      $("welcome").textContent = "Welcome, " + name + " 👋";
+      $("userName").textContent = "Name: " + name;
+      $("userEmail").textContent = "Email: " + user.email;
+
+      showPage("dashboard");
+
+    } catch (error) {
+      showMessage("Could not load your profile. Check database rules.");
+    }
+  } else {
+    showPage("login");
+  }
+});
+
+// LOGOUT
+
+$("logoutBtn").onclick = async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    showMessage(error.message);
+  }
+};
+
+</script>
+
+
+<style>
+  body {
+    visibility: hidden;
+  }
+
+  #logoutButton {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    z-index: 9999;
+    padding: 10px 16px;
+    background: #8b5cf6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+</style>
+
+<script type="module">
+import {
+  auth,
+  onAuthStateChanged,
+  signOut
+} from "./firebase.js";
+
+onAuthStateChanged(auth, (user) => {
+
+  if (!user) {
+    window.location.replace("auth.html");
+    return;
+  }
+
+  // Show the homepage after confirming login.
+  document.body.style.visibility = "visible";
+
+  // Create logout button.
+  if (!document.getElementById("logoutButton")) {
+    const logoutButton = document.createElement("button");
+
+    logoutButton.id = "logoutButton";
+    logoutButton.textContent = "Logout";
+
+    logoutButton.onclick = async () => {
+      try {
+        await signOut(auth);
+        window.location.replace("auth.html");
+      } catch (error) {
+        alert("Logout failed: " + error.message);
+      }
+    };
+
+    document.body.appendChild(logoutButton);
+  }
+
+});
+</script>
+</body>
+  </html></html>
+</body>
+</html>

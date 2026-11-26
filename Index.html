@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Word & Emoji Repeater</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #141e30, #243b55);
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            background: #ffffff;
+            color: #222;
+            padding: 28px;
+            border-radius: 20px;
+            box-shadow: 0 10px 35px #0005;
+        }
+
+        h1 {
+            text-align: center;
+            color: #6246ea;
+            font-size: 27px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin: 15px 0 8px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .generate {
+            background: #6246ea;
+            color: white;
+        }
+
+        .copy {
+            background: #16a085;
+            color: white;
+        }
+
+        .clear {
+            background: #eee;
+            color: #222;
+        }
+
+        .message {
+            text-align: center;
+            color: #6246ea;
+            margin-top: 15px;
+        }
+
+        .output {
+            background: #f3f3f8;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 10px;
+            overflow-wrap: anywhere;
+            max-height: 220px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+
+        footer {
+            text-align: center;
+            color: #888;
+            margin-top: 25px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>✨ Word & Emoji Repeater</h1>
+
+    <p class="subtitle">
+        Repeat your favourite words and emojis!
+    </p>
+
+    <form method="POST">
+
+        <label>Enter Word or Emoji</label>
+
+        <input
+            type="text"
+            name="word"
+            placeholder="Example: Hello 🔥"
+            value="{{ word }}"
+            required
+        >
+
+        <label>Number of Repetitions</label>
+
+        <input
+            type="number"
+            name="limit"
+            min="1"
+            max="100000"
+            placeholder="Maximum 1000"
+            value="{{ limit }}"
+            required
+        >
+
+        <button class="generate" type="submit">
+            Generate ✨
+        </button>
+
+    </form>
+
+    {% if message %}
+        <div class="message">{{ message }}</div>
+    {% endif %}
+
+    {% if result %}
+        <div class="output" id="output">{{ result }}</div>
+
+        <button class="copy" onclick="copyText()">
+            📋 Copy Output
+        </button>
+    {% endif %}
+
+    <button class="clear" onclick="window.location.href='/'">
+        Clear
+    </button>
+
+    <footer>
+        Word & Emoji Repeater | Made with Python ❤️
+    </footer>
+
+</div>
+
+<script>
+function copyText() {
+    const output = document.getElementById("output");
+
+    if (!output) return;
+
+    navigator.clipboard.writeText(output.innerText)
+        .then(() => alert("Output copied successfully!"))
+        .catch(() => alert("Could not copy. Please select the text."));
+}
+</script>
+
+</body>
+</html>
